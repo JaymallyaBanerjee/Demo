@@ -1,0 +1,295 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX 100
+
+// Structure for a node in a linked list
+struct Node {
+    char song[50];
+    struct Node* next;
+};
+
+// Global variables for various data structures
+char undoStack[MAX][50];  // Stack for Undo operations
+int top = -1;
+
+int queue[MAX];  // Queue for bank system
+int front = -1, rear = -1;
+
+struct Node* playlist = NULL;  // Linked List for playlist
+
+struct Student {
+    int roll_no;
+    char name[50];
+    struct Student* next;
+};
+
+// Hash Table (an array of linked lists for collision handling)
+struct Student* hashTable[MAX];
+
+// Stack Functions (Undo System)
+void push(char *operation) {
+    if (top == MAX - 1) {
+        printf("Stack Overflow\n");
+    } else {
+        top++;
+        strcpy(undoStack[top], operation);
+    }
+}
+
+void pop() {
+    if (top == -1) {
+        printf("No more operations to undo\n");
+    } else {
+        printf("Undoing operation: %s\n", undoStack[top]);
+        top--;
+    }
+}
+
+void undoMenu() {
+    int choice;
+    char operation[50];
+
+    do {
+        printf("\n--- Text Editor Undo System ---\n");
+        printf("1. Perform Operation\n");
+        printf("2. Undo Operation\n");
+        printf("3. Exit\n");
+        printf("Enter choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                printf("Enter operation (e.g., type/delete): ");
+                scanf("%s", operation);
+                push(operation);
+                break;
+            case 2:
+                pop();
+                break;
+            case 3:
+                break;
+            default:
+                printf("Invalid choice!\n");
+        }
+    } while (choice != 3);
+}
+
+// Queue Functions (Bank Queue System)
+void enqueue(int person) {
+    if (rear == MAX - 1) {
+        printf("Queue Overflow\n");
+    } else {
+        if (front == -1) front = 0;
+        rear++;
+        queue[rear] = person;
+        printf("Person %d added to the queue\n", person);
+    }
+}
+
+void dequeue() {
+    if (front == -1 || front > rear) {
+        printf("Queue Underflow\n");
+    } else {
+        printf("Person %d is served and removed from the queue\n", queue[front]);
+        front++;
+    }
+}
+
+void bankQueueMenu() {
+    int choice, person;
+
+    do {
+        printf("\n--- Bank Queue System ---\n");
+        printf("1. Add Person to Queue\n");
+        printf("2. Serve Person from Queue\n");
+        printf("3. Exit\n");
+        printf("Enter choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                printf("Enter person number: ");
+                scanf("%d", &person);
+                enqueue(person);
+                break;
+            case 2:
+                dequeue();
+                break;
+            case 3:
+                break;
+            default:
+                printf("Invalid choice!\n");
+        }
+    } while (choice != 3);
+}
+
+// Linked List Functions (Music Playlist)
+void addSong(char* songName) {
+    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+    strcpy(newNode->song, songName);
+    newNode->next = NULL;
+
+    if (playlist == NULL) {
+        playlist = newNode;
+    } else {
+        struct Node* temp = playlist;
+        while (temp->next != NULL) {
+            temp = temp->next;
+        }
+        temp->next = newNode;
+    }
+    printf("Song '%s' added to the playlist\n", songName);
+}
+
+void displayPlaylist() {
+    if (playlist == NULL) {
+        printf("Playlist is empty\n");
+    } else {
+        struct Node* temp = playlist;
+        printf("Your Playlist:\n");
+        while (temp != NULL) {
+            printf("%s -> ", temp->song);
+            temp = temp->next;
+        }
+        printf("NULL\n");
+    }
+}
+
+void playlistMenu() {
+    int choice;
+    char song[50];
+
+    do {
+        printf("\n--- Music Playlist System ---\n");
+        printf("1. Add Song to Playlist\n");
+        printf("2. Display Playlist\n");
+        printf("3. Exit\n");
+        printf("Enter choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                printf("Enter song name: ");
+                scanf(" %[^\n]", song);
+                addSong(song);
+                break;
+            case 2:
+                displayPlaylist();
+                break;
+            case 3:
+                break;
+            default:
+                printf("Invalid choice!\n");
+        }
+    } while (choice != 3);
+}
+
+// Hash Table Functions (Student Database)
+int hashFunction(int roll_no) {
+    return roll_no % MAX;
+}
+
+void insertStudent(int roll_no, char* name) {
+    int index = hashFunction(roll_no);
+
+    struct Student* newStudent = (struct Student*)malloc(sizeof(struct Student));
+    newStudent->roll_no = roll_no;
+    strcpy(newStudent->name, name);
+    newStudent->next = NULL;
+
+    if (hashTable[index] == NULL) {
+        hashTable[index] = newStudent;
+    } else {
+        struct Student* temp = hashTable[index];
+        while (temp->next != NULL) {
+            temp = temp->next;
+        }
+        temp->next = newStudent;
+    }
+    printf("Student '%s' with roll number %d added\n", name, roll_no);
+}
+
+void searchStudent(int roll_no) {
+    int index = hashFunction(roll_no);
+    struct Student* temp = hashTable[index];
+
+    while (temp != NULL) {
+        if (temp->roll_no == roll_no) {
+            printf("Student found: %s (Roll No: %d)\n", temp->name, temp->roll_no);
+            return;
+        }
+        temp = temp->next;
+    }
+    printf("Student with Roll No %d not found\n", roll_no);
+}
+
+void studentDatabaseMenu() {
+    int choice, roll_no;
+    char name[50];
+
+    do {
+        printf("\n--- Student Database System ---\n");
+        printf("1. Insert Student\n");
+        printf("2. Search Student\n");
+        printf("3. Exit\n");
+        printf("Enter choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                printf("Enter roll number and name: ");
+                scanf("%d %[^\n]", &roll_no, name);
+                insertStudent(roll_no, name);
+                break;
+            case 2:
+                printf("Enter roll number to search: ");
+                scanf("%d", &roll_no);
+                searchStudent(roll_no);
+                break;
+            case 3:
+                break;
+            default:
+                printf("Invalid choice!\n");
+        }
+    } while (choice != 3);
+}
+
+// Main Menu
+int main() {
+    int choice;
+
+    do {
+        printf("\n--- Main Menu ---\n");
+        printf("1. Text Editor (Undo Stack)\n");
+        printf("2. Bank Queue System\n");
+        printf("3. Music Playlist\n");
+        printf("4. Student Database\n");
+        printf("5. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                undoMenu();
+                break;
+            case 2:
+                bankQueueMenu();
+                break;
+            case 3:
+                playlistMenu();
+                break;
+            case 4:
+                studentDatabaseMenu();
+                break;
+            case 5:
+                printf("Exiting...\n");
+                break;
+            default:
+                printf("Invalid choice!\n");
+        }
+    } while (choice != 5);
+
+    return 0;
+}
